@@ -1,8 +1,3 @@
-#!/usr/bin/env node
-
-// degrees to radians polyfill
-if (typeof(Number.prototype.toRad) === "undefined") Number.prototype.toRad = function(){ return this * Math.PI / 180; };
-
 function geocluster(elements, bias){
 	if (!(this instanceof geocluster)) return new geocluster(elements, bias);
 	return this._cluster(elements, bias);
@@ -10,6 +5,13 @@ function geocluster(elements, bias){
 
 // geodetic distance approximation
 geocluster.prototype._dist = function(lat1, lon1, lat2, lon2) {
+	
+	if (typeof(Number.prototype.toRad) === "undefined") {
+	  Number.prototype.toRad = function() {
+	    return this * Math.PI / 180;
+	  }
+	}
+	
 	var dlat = (lat2 - lat1).toRad();
 	var dlon = (lon2 - lon1).toRad();
 	var a = (Math.sin(dlat/2) * Math.sin(dlat/2) + Math.sin(dlon/2) * Math.sin(dlon/2) * Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()));
