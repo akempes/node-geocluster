@@ -43,7 +43,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 
 	// calculate sum of differences
 	for (i = 1; i < elements.length; i++) {
-		diff = self._dist(elements[i][0], elements[i][1], elements[i-1][0], elements[i-1][1]);
+		diff = self._dist(elements[i]['lat'], elements[i]['lng'], elements[i-1]['lat'], elements[i-1]['lng']);
 		tot_diff += diff;
 		diffs.push(diff);
 	}
@@ -86,7 +86,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 			cluster_map.forEach(function(cluster, ci){
 				
 				// distance to cluster
-				dist = self._dist(e[0], e[1], cluster_map[ci].centroid[0], cluster_map[ci].centroid[1]);
+				dist = self._dist(e['lat'], e['lng'], cluster_map[ci].centroid[0], cluster_map[ci].centroid[1]);
 				
 				if (dist < closest_dist) {
 					closest_dist = dist;
