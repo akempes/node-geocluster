@@ -1,41 +1,58 @@
-function geocluster(elements, bias){
-	if (!(this instanceof geocluster)) return new geocluster(elements, bias);
-	return this._cluster(elements, bias);
+function geocluster(elements, bias, type){
+	type = type || 'geodetic';
+	if (!(this instanceof geocluster)) return new geocluster(elements, bias, type);
+	return this._cluster(elements, bias, type);
 };
 
 // geodetic distance approximation
-geocluster.prototype._dist = function(lat1, lon1, lat2, lon2) {
+geocluster.prototype._dist = function(type, x1, y1, x2, y2, z1, z2) {
+	if (type == 'geodetic') {
+		return this._geodeticDist(x1, y1, x2, y2);
+	} else if (type == 'linear') {
+		return this._linearDist(x1, y1, x2, y2, z1, z2);
+	}
+}
 	
+geocluster.prototype._geodeticDist = function(x1, y1, x2, y2) {
 	if (typeof(Number.prototype.toRad) === "undefined") {
 	  Number.prototype.toRad = function() {
 	    return this * Math.PI / 180;
 	  }
 	}
 	
-	var dlat = (lat2 - lat1).toRad();
-	var dlon = (lon2 - lon1).toRad();
-	var a = (Math.sin(dlat/2) * Math.sin(dlat/2) + Math.sin(dlon/2) * Math.sin(dlon/2) * Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()));
+	var dx = (x2 - x1).toRad();
+	var dy = (y2 - y1).toRad();
+	var a = (Math.sin(dx/2) * Math.sin(dx/2) + Math.sin(dy/2) * Math.sin(dy/2) * Math.cos(x1.toRad()) * Math.cos(x2.toRad()));
 	return (Math.round(((2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))) * 6371)*100)/100);
+};
+
+geocluster.prototype._linearDist = function(x1, y1, x2, y2, z1, z2) {
+	var dx = (x2 - x1);
+	var dy = (y2 - y1);
+	var dz = ((z2 || 0) - (z1 || 0));
+
+	return Math.round(Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2))*100)/100;
 };
 
 geocluster.prototype._centroid = function(set) {
 	var center = set.reduce(function(s, e){
-		return {lat: (s['lat']+e['lat']), lng: (s['lng']+e['lng']) };
-	}, {lat: 0, lng: 0});
+		return {x: (s['x']+e['x']), y: (s['y']+e['y']), z: (s['z']+e['z']) };
+	}, {x: 0, y: 0, z: 0});
 
 	return {
-		lat: center['lat'] / set.length,
-		lng: center['lng'] / set.length,
+		x: center['x'] / set.length,
+		y: center['y'] / set.length,
+		z: center['z'] / set.length,
 	};
 }
 
 geocluster.prototype._clean = function(data) {
 	return data.map(function(cluster){
-		return {lat: cluster.centroid['lat'], lng: cluster.elements['lng']};
+		return {x: cluster.centroid['x'], y: cluster.elements['y'], z: cluster.elements['z']};
 	});
 };
 
-geocluster.prototype._cluster = function(elements, bias) {
+geocluster.prototype._cluster = function(elements, bias, type) {
 	
 	var self = this;
 	
@@ -48,7 +65,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 
 	// calculate sum of differences
 	for (i = 1; i < elements.length; i++) {
-		diff = self._dist(elements[i]['lat'], elements[i]['lng'], elements[i-1]['lat'], elements[i-1]['lng']);
+		diff = self._dist(type, elements[i]['x'], elements[i]['y'], elements[i-1]['x'], elements[i-1]['y'], elements[i]['z'], elements[i-1]['z']);
 		tot_diff += diff;
 		diffs.push(diff);
 	}
@@ -71,7 +88,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 	// generate random initial cluster map
 	var e = elements[Math.floor(Math.random() * elements.length)];
 	cluster_map.push({
-		centroid: {lat: e['lat'], lng: e['lng']},
+		centroid: {x: e['x'], y: e['y'], z: e['z']},
 		elements: []
 	});
 
@@ -93,7 +110,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 				
 				// distance to cluster
 				
-				dist = self._dist(e['lat'], e['lng'], cluster_map[ci].centroid['lat'], cluster_map[ci].centroid['lng']);
+				dist = self._dist(type, e['x'], e['y'], cluster_map[ci].centroid['x'], cluster_map[ci].centroid['y'], e['z'], cluster_map[ci].centroid['z']);
 				if (dist < closest_dist) {
 					closest_dist = dist;
 					closest_cluster = ci;
@@ -111,7 +128,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 			
 				// create a new cluster with this element
 				cluster_map.push({
-					centroid: {lat: e['lat'], lng: e['lng']},
+					centroid: {x: e['x'], y: e['y'], z: e['z']},
 					elements: [e]
 				});
 
@@ -129,7 +146,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 		// calculate the clusters centroids and check for change
 		cluster_map.forEach(function(cluster, ci){
 			var centroid = self._centroid(cluster.elements);
-			if (centroid['lat'] !== cluster.centroid['lat'] || centroid['lng'] !== cluster.centroid['lng']) {
+			if (centroid['x'] !== cluster.centroid['x'] || centroid['y'] !== cluster.centroid['y'] || centroid['z'] !== cluster.centroid['z']) {
 				cluster_map[ci].centroid = centroid;
 				cluster_changed = true;
 			}

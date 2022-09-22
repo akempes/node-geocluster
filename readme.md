@@ -10,52 +10,60 @@ npm install geocluster
 
 ## API
 
-### result = geocluster(coordinates[, bias])
+### result = geocluster(coordinates[, bias, type])
 
-`coordinates` is an list of objects containing the attributes `lat` and `lng`. (`{lat: <lat>, lng: <lon>}`)
+`coordinates` is an list of objects containing the attributes `x`, `y` and `z`. (`{x: <x>, y: <y>, x: <x>}`)
 `bias` is a factor the standard deviation gets multiplied with, which acts as threshold to determine if a coordinate belongs to a cluster.
-
+`type` can contain the value `geodetic` (default) or `linear` defining to the distance calculation method.
 `result` is an Array of cluster objects, which have `centroid` and `elements` properties. Example:
 
 ``` javascript
 [
     {
         "centroid": {
-            "lat": 1,
-            "lng": 1
+            "x": 2,
+            "y": 2,
+            "z": 0.3333333333333333
         },
         "elements": [
             {
-                "lat": 1,
-                "lng": 1
+                "x": 2,
+                "y": 2,
+                "z": 0
             },
             {
-                "lat": 0.9,
-                "lng": 1.1
+                "x": 1.9,
+                "y": 2.1,
+                "z": 0
             },
             {
-                "lat": 1.1,
-                "lng": 0.9
+                "x": 2.1,
+                "y": 1.9,
+                "z": 1
             }
         ]
     },
     {
         "centroid": {
-            "lat": 2,
-            "lng": 2
+            "x": 1,
+            "y": 1,
+            "z": 0.3333333333333333
         },
         "elements": [
             {
-                "lat": 2,
-                "lng": 2
+                "x": 1,
+                "y": 1,
+                "z": 0
             },
             {
-                "lat": 1.9,
-                "lng": 2.1
+                "x": 0.9,
+                "y": 1.1,
+                "z": 0
             },
             {
-                "lat": 2.1,
-                "lng": 1.9
+                "x": 1.1,
+                "y": 0.9,
+                "z": 1
             }
         ]
     }
@@ -68,19 +76,20 @@ npm install geocluster
 
 var geocluster = require("geocluster");
 
-var coordinates = [ // array of lat-lon-pairs
-	{lat: 1.0, lng: 1.0},
-	{lat: 0.9, lng: 1.1},
-	{lat: 1.1, lng: 0.9},
-	{lat: 2.0, lng: 2.0},
-	{lat: 1.9, lng: 2.1},
-	{lat: 2.1, lng: 1.9}
+var coordinates = [ // array of x-y-z-pairs
+	{x: 1.0, y: 1.0, z: 0},
+	{x: 0.9, y: 1.1, z: 0},
+	{x: 1.1, y: 0.9, z: 1},
+	{x: 2.0, y: 2.0, z: 0},
+	{x: 1.9, y: 2.1, z: 0},
+	{x: 2.1, y: 1.9, z: 1}
 	// ...
 ];
 
 var bias = 1.5; // multiply stdev with this factor, the smaller the more clusters
 
-var result = geocluster(coordinates, bias); 
+var result = geocluster(coordinates, bias); // geodetic
+var result = geocluster(coordinates, bias, 'linear'); // linear
 
 // result is an array of cluster objects with `centroid` and `elements` properties
 
