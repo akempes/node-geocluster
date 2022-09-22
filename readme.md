@@ -12,23 +12,54 @@ npm install geocluster
 
 ### result = geocluster(coordinates[, bias])
 
-`coordinates` is an Array of `[lat, lon]` pairs.
+`coordinates` is an list of objects containing the attributes `lat` and `lng`. (`{lat: <lat>, lng: <lon>}`)
 `bias` is a factor the standard deviation gets multiplied with, which acts as threshold to determine if a coordinate belongs to a cluster.
 
 `result` is an Array of cluster objects, which have `centroid` and `elements` properties. Example:
 
 ``` javascript
-[{
-	centroid: [1.0,1.0],
-	elements: [
-		[1.0,1.0], [0.9,1.1], [1.1,0.9]
-	]
-},{
-	centroid: [2.0,2.0],
-	elements: [
-		[2.0,2.0], [1.9,2.1], [2.1,1.9]
-	]
-}]
+[
+    {
+        "centroid": {
+            "lat": 1,
+            "lng": 1
+        },
+        "elements": [
+            {
+                "lat": 1,
+                "lng": 1
+            },
+            {
+                "lat": 0.9,
+                "lng": 1.1
+            },
+            {
+                "lat": 1.1,
+                "lng": 0.9
+            }
+        ]
+    },
+    {
+        "centroid": {
+            "lat": 2,
+            "lng": 2
+        },
+        "elements": [
+            {
+                "lat": 2,
+                "lng": 2
+            },
+            {
+                "lat": 1.9,
+                "lng": 2.1
+            },
+            {
+                "lat": 2.1,
+                "lng": 1.9
+            }
+        ]
+    }
+]
 ``` 
 
 ## Sample Code
@@ -38,9 +69,12 @@ npm install geocluster
 var geocluster = require("geocluster");
 
 var coordinates = [ // array of lat-lon-pairs
-	[<lat>, <lon>], 
-	[<lat>, <lon>], 
-	[<lat>, <lon>],
+	{lat: 1.0, lng: 1.0},
+	{lat: 0.9, lng: 1.1},
+	{lat: 1.1, lng: 0.9},
+	{lat: 2.0, lng: 2.0},
+	{lat: 1.9, lng: 2.1},
+	{lat: 2.1, lng: 1.9}
 	// ...
 ];
 

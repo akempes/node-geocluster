@@ -19,16 +19,19 @@ geocluster.prototype._dist = function(lat1, lon1, lat2, lon2) {
 };
 
 geocluster.prototype._centroid = function(set) {
-	return set.reduce(function(s, e){
-		return [(s[0]+e[0]),(s[1]+e[1])];
-	}, [0,0]).map(function(e){
-		return (e/set.length);
-	});
+	var center = set.reduce(function(s, e){
+		return {lat: (s['lat']+e['lat']), lng: (s['lng']+e['lng']) };
+	}, {lat: 0, lng: 0});
+
+	return {
+		lat: center['lat'] / set.length,
+		lng: center['lng'] / set.length,
+	};
 }
 
 geocluster.prototype._clean = function(data) {
 	return data.map(function(cluster){
-		return [cluster.centroid, cluster.elements];
+		return {lat: cluster.centroid['lat'], lng: cluster.elements['lng']};
 	});
 };
 
@@ -45,7 +48,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 
 	// calculate sum of differences
 	for (i = 1; i < elements.length; i++) {
-		diff = self._dist(elements[i][0], elements[i][1], elements[i-1][0], elements[i-1][1]);
+		diff = self._dist(elements[i]['lat'], elements[i]['lng'], elements[i-1]['lat'], elements[i-1]['lng']);
 		tot_diff += diff;
 		diffs.push(diff);
 	}
@@ -66,8 +69,9 @@ geocluster.prototype._cluster = function(elements, bias) {
 	var cluster_map = [];
 	
 	// generate random initial cluster map
+	var e = elements[Math.floor(Math.random() * elements.length)];
 	cluster_map.push({
-		centroid: elements[Math.floor(Math.random() * elements.length)],
+		centroid: {lat: e['lat'], lng: e['lng']},
 		elements: []
 	});
 
@@ -88,8 +92,8 @@ geocluster.prototype._cluster = function(elements, bias) {
 			cluster_map.forEach(function(cluster, ci){
 				
 				// distance to cluster
-				dist = self._dist(e[0], e[1], cluster_map[ci].centroid[0], cluster_map[ci].centroid[1]);
 				
+				dist = self._dist(e['lat'], e['lng'], cluster_map[ci].centroid['lat'], cluster_map[ci].centroid['lng']);
 				if (dist < closest_dist) {
 					closest_dist = dist;
 					closest_cluster = ci;
@@ -107,7 +111,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 			
 				// create a new cluster with this element
 				cluster_map.push({
-					centroid: e,
+					centroid: {lat: e['lat'], lng: e['lng']},
 					elements: [e]
 				});
 
@@ -125,7 +129,7 @@ geocluster.prototype._cluster = function(elements, bias) {
 		// calculate the clusters centroids and check for change
 		cluster_map.forEach(function(cluster, ci){
 			var centroid = self._centroid(cluster.elements);
-			if (centroid[0] !== cluster.centroid[0] || centroid[1] !== cluster.centroid[1]) {
+			if (centroid['lat'] !== cluster.centroid['lat'] || centroid['lng'] !== cluster.centroid['lng']) {
 				cluster_map[ci].centroid = centroid;
 				cluster_changed = true;
 			}
